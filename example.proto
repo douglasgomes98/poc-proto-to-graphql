@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package api.flight.booking;
+
+service BookingService {
+  rpc CreateBooking(CreateBookingRequest) returns(CreateBookingResponse);
+  rpc ListBookings(ListBookingsRequest) returns(ListBookingsResponse);
+  rpc GetBooking(GetBookingRequest) returns(GetBookingResponse);
+  rpc UpdateBookingFee(UpdateBookingFeeRequest) returns(UpdateBookingFeeResponse);
+  rpc UpdateBookingTsa(UpdateBookingTsaRequest) returns(UpdateBookingTsaResponse);
+  rpc CancelBooking(CancelBookingRequest) returns(CancelBookingResponse);
+}
+
+message GetBookingRequest { string id = 1; }
+message GetBookingResponse { Booking booking = 1; }
+
+message ListBookingsRequest {}
+message ListBookingsResponse { repeated Booking bookings = 1; }
+
+message CancelBookingRequest {string id = 1;}
+message CancelBookingResponse {
+  Booking booking = 1;
+}
+
+message CreateBookingRequest {
+  repeated string selected_tokens = 1;
+  repeated Passenger passengers = 2;
+}
+
+message CreateBookingResponse {
+  Booking booking = 1;
+}
+
+message UpdateBookingFeeRequest {
+  string booking_id = 1;
+  repeated BookingPassengerFee passenger_fee = 2;
+
+  message BookingPassengerFee {
+    string passenger_id = 1;
+    float agent_fee = 2;
+  }
+}
+
+message UpdateBookingFeeResponse{
+  Booking booking = 1;
+}
+
+message UpdateBookingTsaRequest {
+  string booking_id = 1;
+  BookingPassengerTsa booking_passenger_tsa = 2;
+
+  message BookingPassengerTsa {
+    string passenger_id = 1;
+
+    string first_name = 2;
+    string last_name = 3;
+    string middle_name = 4;
+    string birth_date = 5;
+    GenderType gender_type = 6;
+    string redress = 7;
+
+    string passport_issuing_country = 8;
+    string passport_number = 9;
+    string nationality = 10;
+    string passport_expires_at = 11;
+  }
+}
+
+message UpdateBookingTsaResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message Booking {
+  repeated Slice slices = 1;
+
+  float total_fare = 2 [deprecated = true];
+  float total_tax = 3 [deprecated = true];
+  float total_fee = 4 [deprecated = true];
+  float total_price = 5 [deprecated = true];
+
+  repeated PaxPrice price_per_pax = 6 [deprecated = true];
+
+  Baggage baggage = 7;
+  bool seat_reservation = 8;
+  bool milleage = 9;
+
+  string created_at = 11;
+  string expires_at = 12;
+
+  string validating_carrier = 13;
+
+  repeated Passenger passengers = 14;
+
+  Provider provider = 15;
+
+  BookingStatus booking_status = 16;
+
+  int32 user_id = 17;
+  int32 agency_id = 18;
+  string id = 19;
+
+  string issued_at = 20;
+  string cancelled_at = 21;
+
+  Price price = 22;
+
+  message Provider {
+    string locator = 1;
+    string gds = 2;
+  }
+
+}
+
+message Passenger {
+  PaxType pax_type = 1;
+  string title = 2;
+  string phone_number = 3;
+  string first_name = 5;
+  string last_name = 6;
+  GenderType gender_type = 7;
+  string email = 8;
+  string birth_date = 9;
+  string middle_name = 10;
+
+  string id = 11;
+
+  Price price = 12;
+  string provider_id = 13;
+  repeated Ticket tickets = 14;
+  TSA tsa = 15;
+
+  string associated_infant_id = 16;
+
+  message Ticket {
+    string number = 1;
+    TicketType ticketType = 2;
+    string created_at = 3;
+    string pcc = 4;
+    string provider_details = 5;
+
+    enum TicketType {
+      TICKET_TYPE_SEGMENT = 0; TICKET_TYPE_ANCILLARY = 1;
+    }
+  }
+
+  message TSA {
+    string first_name = 1;
+    string last_name = 2;
+    string middle_name = 3;
+    string birth_date = 4;
+    GenderType gender_type = 5;
+    string redress = 6;
+
+    string passport_issuing_country = 7;
+    string passport_number = 8;
+    string nationality = 9;
+    string passport_expires_at = 10;
+
+    string provider_id = 11;
+  }
+
+}
+
+message PaxPrice {
+  PaxType pax_type = 1 [deprecated = true];
+  int32 quantity = 2 [deprecated = true];
+  float fare = 3 [deprecated = true];
+  float tax = 4 [deprecated = true];
+  float fee = 5 [deprecated = true];
+}
+
+message Price {
+  string original_currency = 1;
+  float original_fare = 2;
+
+  float fare = 3;
+  float tax = 4;
+  float agent_fee = 5;
+  float consolid_fee = 6;
+
+  float total = 7;
+}
+
+message Slice {
+  string id = 1;
+  string origin = 2;
+  string destination = 3;
+  string departure_date = 4;
+  string arrival_date = 5;
+  string airline = 6;
+  int32 duration = 7;
+
+  repeated string connections = 8;
+  repeated Leg legs = 9;
+  string token = 10;
+
+  message Leg {
+    string id = 1;
+    string aircraft = 3;
+    string destination = 4;
+    string arrival_date = 5;
+    string arrival_terminal = 6;
+    string origin = 7;
+    string departure_date = 8;
+    string departure_terminal = 9;
+    int32 duration = 10;
+    int32 flight_number = 11;
+    string managed_by = 12;
+    int32 number_of_stops = 13;
+    string operated_by = 14;
+    FareInfo fare_info = 15;
+    LegStatus leg_status = 16;
+
+    string provider_id = 17;
+    string provider_status = 18;
+
+    message FareInfo {
+      string fare_class = 1;
+      string fare_basis = 2;
+      Cabin cabin = 3;
+      Baggage baggage = 4;
+    }
+  }
+}
+
+enum BookingStatus {
+  BOOKING_STATUS_UNSPECIFIED = 0;
+  BOOKING_STATUS_ONHOLD = 1;
+  BOOKING_STATUS_TICKETED = 2;
+  BOOKING_STATUS_CANCELLED = 3;
+  BOOKING_STATUS_PENDING = 4;
+}
+
+enum GenderType {
+  GENDER_TYPE_UNSPECIFIED = 0;
+  GENDER_TYPE_FEMALE = 1;
+  GENDER_TYPE_MALE = 2;
+}
+
+enum PaxType {
+  PAX_TYPE_UNSPECIFIED = 0; PAX_TYPE_ADT = 1; PAX_TYPE_CHD = 2;
+  PAX_TYPE_INF = 3;
+}
+
+enum Baggage {
+  BAGGAGE_UNSPECIFIED = 0;
+  BAGGAGE_NO = 1;
+  BAGGAGE_1_PIECE = 2;
+  BAGGAGE_1_PIECE_23KG = 3;
+  BAGGAGE_1_PIECE_32KG = 4;
+  BAGGAGE_2_PIECE = 5;
+  BAGGAGE_2_PIECE_23KG = 6;
+  BAGGAGE_2_PIECE_32KG = 7;
+  BAGGAGE_3_PIECE = 8;
+  BAGGAGE_3_PIECE_23KG = 9;
+  BAGGAGE_3_PIECE_32KG = 10;
+}
+
+enum Cabin {
+  CABIN_UNSPECIFIED = 0; CABIN_ECONOMY = 1; CABIN_PREMIUM = 2;
+  CABIN_BUSINESS = 3;
+  CABIN_FIRST = 4;
+}
+
+enum LegStatus {
+  LEG_STATUS_UNSPECIFIED = 0;
+  LEG_STATUS_CONFIRMED = 1;
+  LEG_STATUS_CANCELED = 2;
+  LEG_STATUS_NO_SHOW = 3;
+  LEG_STATUS_FLOWN = 4;
+  LEG_STATUS_REISSUED = 5;
+  LEG_STATUS_WAIT_LIST = 6;
+  LEG_STATUS_SCHEDULE_CHANGE = 7;
+  LEG_STATUS_PENDING_CONFIRMATION = 8;
+  LEG_STATUS_FRAUD = 9;
+  LEG_STATUS_REFUNDED = 10;
+  LEG_STATUS_SUSPENDED = 11;
+  LEG_STATUS_CHECKED_IN = 12;
+}

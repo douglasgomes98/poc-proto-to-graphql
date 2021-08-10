@@ -1,0 +1,15 @@
+{
+  "name": "poc-proto-to-graphql",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto  --ts_proto_opt=outputEncodeMethods=false,outputJsonMethods=false,outputClientImpl=false,stringEnums=true --ts_proto_out=. ./example.proto "
+  },
+  "devDependencies": {
+    "ts-proto": "^1.82.5"
+  },
+  "dependencies": {
+    "graphql": "^15.5.1"
+  }
+}
